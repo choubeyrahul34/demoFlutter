@@ -1,84 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
-class HomePage extends StatefulWidget {
+class DeviceInfoScreen extends StatefulWidget {
+  const DeviceInfoScreen({super.key});
+
   @override
-  _HomePageState createState() => _HomePageState();
+  _DeviceInfoScreenState createState() => _DeviceInfoScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
+  late Future<Map<String, dynamic>> _deviceInfoFuture;
+
   @override
   void initState() {
     super.initState();
-    _sendDeviceInfoToBackend();
+    _deviceInfoFuture = _getDeviceInfo();
   }
 
-  Future<void> _sendDeviceInfoToBackend() async {
-    final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    final WebBrowserInfo webBrowserInfo = await deviceInfo.webBrowserInfo;
+  Future<Map<String, dynamic>> _getDeviceInfo() async {
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    WebBrowserInfo webBrowserInfo = await deviceInfoPlugin.webBrowserInfo;
 
-    // Extracting more unique device information
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-    String timezone = DateTime.now().timeZoneName;
-    int deviceMemory = webBrowserInfo.deviceMemory ?? 0;
+    // Retrieve or generate a unique device ID
+    String deviceId = const Uuid().v4();
 
-    // Generate or retrieve a unique identifier for the device
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? uniqueId = prefs.getString('uniqueId');
-    // if (uniqueId == null) {
-    //   uniqueId = const Uuid().v4();
-    //   await prefs.setString('uniqueId', uniqueId);
-    // }
+    // Collect all relevant device information
+    Map<String, dynamic> deviceData = {
+      'userAgent': webBrowserInfo.userAgent ?? 'Unknown',
+      'vendor': webBrowserInfo.vendor ?? 'Unknown',
+      'platform': webBrowserInfo.platform ?? 'Unknown',
+      'appVersion': webBrowserInfo.appVersion ?? 'Unknown',
+      'appName': webBrowserInfo.appName ?? 'Unknown',
+      'hardwareConcurrency': webBrowserInfo.hardwareConcurrency ?? 0,
+      'language': webBrowserInfo.language ?? 'Unknown',
+      'deviceId': deviceId,
+      // Additional device-specific information can be added here
+    };
 
-    // Combine with previous properties for more uniqueness
-    String userAgent = webBrowserInfo.userAgent ?? 'Unknown';
-    String vendor = webBrowserInfo.vendor ?? 'Unknown';
-    String platform = webBrowserInfo.platform ?? 'Unknown';
-    String appVersion = webBrowserInfo.appVersion ?? 'Unknown';
-    String appName = webBrowserInfo.appName ?? 'Unknown';
-    int hardwareConcurrency = webBrowserInfo.hardwareConcurrency ?? 0;
-    String language = webBrowserInfo.language ?? 'Unknown';
-
-    // Print the device information to the terminal
-    debugPrint('User Agent: $userAgent');
-    debugPrint('Vendor: $vendor');
-    debugPrint('Platform: $platform');
-    debugPrint('App Version: $appVersion');
-    debugPrint('App Name: $appName');
-    debugPrint('Hardware Concurrency: $hardwareConcurrency');
-    debugPrint('Language: $language');
-    debugPrint('Screen Width: $screenWidth');
-    debugPrint('Screen Height: $screenHeight');
-    debugPrint('Timezone: $timezone');
-    debugPrint('Device Memory: $deviceMemory');
-    // debugPrint('Unique ID: $uniqueId');
+    return deviceData;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Signup Page'),
+        title: const Text('Device Info'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('Welcome to the Signup Page'),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to the signup form (to be implemented)
-              },
-              child: const Text('Signup'),
-            ),
-          ],
-        ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _deviceInfoFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            return ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: snapshot.data!.entries.map((entry) {
+                return ListTile(
+                  title: Text('${entry.key}:'),
+                  subtitle: Text('${entry.value}'),
+                );
+              }).toList(),
+            );
+          } else {
+            return const Center(child: Text('No device information available'));
+          }
+        },
       ),
     );
   }
