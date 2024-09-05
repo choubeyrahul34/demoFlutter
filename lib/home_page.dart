@@ -35,6 +35,21 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
       'appName': webBrowserInfo.appName ?? 'Unknown',
       'hardwareConcurrency': webBrowserInfo.hardwareConcurrency ?? 0,
       'language': webBrowserInfo.language ?? 'Unknown',
+
+      'browserName': webBrowserInfo.browserName.name,
+      'appCodeName': webBrowserInfo.appCodeName,
+
+      'deviceMemory': webBrowserInfo.deviceMemory,
+
+      'languages': webBrowserInfo.languages,
+
+      'product': webBrowserInfo.product,
+      'productSub': webBrowserInfo.productSub,
+
+      'vendorSub': webBrowserInfo.vendorSub,
+
+      'maxTouchPoints': webBrowserInfo.maxTouchPoints,
+
       'deviceId': deviceId,
       // Additional device-specific information can be added here
     };
