@@ -27,10 +27,13 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
     // Retrieve or generate a unique device ID
     String deviceId = const Uuid().v4();
 
-    // Get timezone and available screen size using JavaScript interop
+    // Get timezone, screen size, and keyboard layout using JavaScript interop
     String timeZone = html.window.navigator.language; // Get user's locale
     int? screenWidth = html.window.innerWidth; // Available screen width
     int? screenHeight = html.window.innerHeight; // Available screen height
+
+    // Infer keyboard layout from the user's primary language
+    String keyboardLayout = _getKeyboardLayout(html.window.navigator.language);
 
     // Collect all relevant device information
     Map<String, dynamic> deviceData = {
@@ -55,9 +58,27 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
       'timeZone': timeZone, // Add timezone (locale)
       'screenWidth': screenWidth, // Add available screen width
       'screenHeight': screenHeight, // Add available screen height
+      'keyboardLayout': keyboardLayout, // Add keyboard layout
     };
 
     return deviceData;
+  }
+
+  // Infer the keyboard layout from the user's primary language
+  String _getKeyboardLayout(String language) {
+    if (language.startsWith('en-US') || language.startsWith('en')) {
+      return 'US';
+    } else if (language.startsWith('en-GB')) {
+      return 'UK';
+    } else if (language.startsWith('fr')) {
+      return 'French';
+    } else if (language.startsWith('de')) {
+      return 'German';
+    } else if (language.startsWith('es')) {
+      return 'Spanish';
+    } else {
+      return 'Unknown';
+    }
   }
 
   @override
