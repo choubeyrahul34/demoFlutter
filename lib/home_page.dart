@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:async';
+import 'dart:html' as html; // Import dart:html for JavaScript interop
 
 class DeviceInfoScreen extends StatefulWidget {
   const DeviceInfoScreen({super.key});
@@ -26,6 +27,11 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
     // Retrieve or generate a unique device ID
     String deviceId = const Uuid().v4();
 
+    // Get timezone and available screen size using JavaScript interop
+    String timeZone = html.window.navigator.language; // Get user's locale
+    int? screenWidth = html.window.innerWidth; // Available screen width
+    int? screenHeight = html.window.innerHeight; // Available screen height
+
     // Collect all relevant device information
     Map<String, dynamic> deviceData = {
       'userAgent': webBrowserInfo.userAgent ?? 'Unknown',
@@ -35,23 +41,20 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
       'appName': webBrowserInfo.appName ?? 'Unknown',
       'hardwareConcurrency': webBrowserInfo.hardwareConcurrency ?? 0,
       'language': webBrowserInfo.language ?? 'Unknown',
-
       'browserName': webBrowserInfo.browserName.name,
       'appCodeName': webBrowserInfo.appCodeName,
-
       'deviceMemory': webBrowserInfo.deviceMemory,
-
       'languages': webBrowserInfo.languages,
-
       'product': webBrowserInfo.product,
       'productSub': webBrowserInfo.productSub,
-
       'vendorSub': webBrowserInfo.vendorSub,
-
       'maxTouchPoints': webBrowserInfo.maxTouchPoints,
-
       'deviceId': deviceId,
-      // Additional device-specific information can be added here
+
+      // Additional information
+      'timeZone': timeZone, // Add timezone (locale)
+      'screenWidth': screenWidth, // Add available screen width
+      'screenHeight': screenHeight, // Add available screen height
     };
 
     return deviceData;
